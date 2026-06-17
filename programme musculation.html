@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>War Room — Programme Musculation</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#07070C;min-height:100vh;display:flex;justify-content:center;padding:30px 16px}
+.wr{font-family:'Inter',sans-serif;background:#0D0D12;color:#E8E8F0;width:100%;max-width:760px;padding:28px;border-radius:16px;box-shadow:0 0 60px rgba(0,0,0,0.6)}
+.bb{font-family:'Bebas Neue',sans-serif;letter-spacing:0.05em}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid rgba(200,150,42,0.25)}
+.logo{font-size:32px;color:#C8962A;line-height:1}
+.logo span{font-family:'Inter',sans-serif;font-size:10px;font-weight:300;color:#888;display:block;letter-spacing:0.15em;text-transform:uppercase;margin-top:2px}
+.week-tabs{display:flex;gap:8px}
+.wtab{background:none;border:1px solid #2A2A35;color:#888;font-family:'Inter',sans-serif;font-size:11px;font-weight:500;padding:8px 20px;border-radius:6px;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.2s}
+.wtab.active{background:#C8962A;border-color:#C8962A;color:#0D0D12;font-weight:600}
+.sessions-nav{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap}
+.stab{background:none;border:1px solid #1E1E28;color:#666;font-family:'Bebas Neue',sans-serif;font-size:15px;padding:9px 16px;border-radius:6px;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;position:relative}
+.stab.active{border-color:#C8962A;color:#C8962A;background:rgba(200,150,42,0.08)}
+.stab .dot-done{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:#4CAF50;display:none}
+.stab.completed .dot-done{display:block}
+.session-panel{display:none}
+.session-panel.active{display:block}
+.session-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
+.s-title{font-size:42px;color:#fff;line-height:1}
+.s-title em{color:#C8962A;font-style:normal}
+.progress-area{text-align:right}
+.prog-label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+.prog-bar{width:150px;height:3px;background:#1E1E28;border-radius:2px;overflow:hidden;margin-left:auto}
+.prog-fill{height:100%;background:#C8962A;border-radius:2px;transition:width 0.4s}
+.prog-pct{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#C8962A;margin-top:4px;text-align:right}
+.reset-btn{background:none;border:none;color:#333;font-family:'Inter',sans-serif;font-size:10px;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;padding:4px 0;transition:color 0.2s}
+.reset-btn:hover{color:#888}
+.ex-list{display:flex;flex-direction:column;gap:3px}
+.ex-row{background:#111118;border:1px solid #1A1A24;border-radius:8px;overflow:hidden;transition:border-color 0.2s}
+.ex-row.optional{border-color:#1A1A1A;opacity:0.65}
+.ex-top{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:0;padding:10px 14px 10px 0}
+.ex-num{width:28px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:#C8962A;flex-shrink:0}
+.ex-name{font-size:13px;font-weight:400;color:#CCC;line-height:1.3;padding-right:12px}
+.ex-name small{display:block;font-size:11px;color:#555;margin-top:1px}
+.ex-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.reps-badge{background:#1A1A24;border:1px solid #252530;border-radius:4px;padding:3px 8px;font-size:11px;color:#AAA;white-space:nowrap}
+.reps-text{font-size:11px;color:#666;white-space:nowrap}
+.rest-badge{font-size:11px;color:#666;min-width:44px;text-align:right}
+.series-row{display:flex;align-items:center;gap:4px;padding:0 14px 10px 28px}
+.serie-dot{width:22px;height:22px;border-radius:50%;border:1.5px solid #2A2A35;background:none;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.serie-dot::after{content:'';width:8px;height:8px;border-radius:50%;background:#2A2A35;transition:all 0.15s}
+.serie-dot.done{border-color:#C8962A;background:rgba(200,150,42,0.15)}
+.serie-dot.done::after{background:#C8962A}
+.opt-tag{font-size:9px;color:#444;text-transform:uppercase;letter-spacing:0.1em;margin-left:6px}
+.ex-row.all-done{border-color:rgba(76,175,80,0.3);background:#0F1410}
+.ex-row.all-done .ex-name{color:#7CB87E}
+.ex-row.all-done .ex-num{color:#4CAF50}
+.footer-note{margin-top:18px;padding:12px 16px;background:#0A0A10;border-radius:6px;border-left:2px solid #C8962A;font-size:11px;color:#555}
+.no-session{padding:28px 0;text-align:center;font-size:11px;color:#2E2E3A;letter-spacing:0.15em;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="wr">
+  <div class="top-bar">
+    <div class="logo bb">WAR ROOM<span>programme musculation</span></div>
+    <div class="week-tabs">
+      <button class="wtab active" onclick="switchWeek(1)">Semaine 1</button>
+      <button class="wtab" onclick="switchWeek(2)">Semaine 2</button>
+    </div>
+  </div>
+
+  <!-- SEMAINE 1 -->
+  <div id="week1">
+    <div class="sessions-nav">
+      <button class="stab active" onclick="switchSession('w1',1,this)" id="w1-stab-1">UPPER BODY<div class="dot-done"></div></button>
+      <button class="stab" onclick="switchSession('w1',2,this)" id="w1-stab-2">LOWER BODY<div class="dot-done"></div></button>
+      <button class="stab" onclick="switchSession('w1',3,this)" id="w1-stab-3">PUSH<div class="dot-done"></div></button>
+      <button class="stab" onclick="switchSession('w1',4,this)" id="w1-stab-4">PULL<div class="dot-done"></div></button>
+      <button class="stab" onclick="switchSession('w1',5,this)" id="w1-stab-5">LEGS<div class="dot-done"></div></button>
+    </div>
+
+    <div id="w1-nochoice" class="no-session">— Sélectionne une séance —</div>
+
+    <!-- W1 S1 UPPER BODY -->
+    <div class="session-panel" id="w1-s1">
+      <div class="session-head">
+        <div class="s-title bb">Séance 1<br><em>Upper Body</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w1-s1" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w1-s1">0%</div>
+          <button class="reset-btn" onclick="resetSession('w1-s1')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="4" data-done="0" data-id="w1s1e1">
+          <div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Tirage vertical</div><div class="ex-meta"><span class="reps-text">4×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w1s1e1"></div>
+        </div>
+        <div class="ex-row" data-total="4" data-done="0" data-id="w1s1e2">
+          <div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Tirage horizontal</div><div class="ex-meta"><span class="reps-text">1×12 + 3×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w1s1e2"></div>
+        </div>
+        <div class="ex-row" data-total="4" data-done="0" data-id="w1s1e3">
+          <div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Développé couché</div><div class="ex-meta"><span class="reps-text">1×12 + 3×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w1s1e3"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s1e4">
+          <div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Écarté décliné ou pec fly</div><div class="ex-meta"><span class="reps-text">3×10–12</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w1s1e4"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s1e5">
+          <div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Curl banc incliné<small>superset — Extensions triceps dessus tête</small></div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w1s1e5"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W1 S2 LOWER BODY -->
+    <div class="session-panel" id="w1-s2">
+      <div class="session-head">
+        <div class="s-title bb">Séance 2<br><em>Lower Body</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w1-s2" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w1-s2">0%</div>
+          <button class="reset-btn" onclick="resetSession('w1-s2')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s2e1">
+          <div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Élévations latérales</div><div class="ex-meta"><span class="reps-text">1×10–12 + 2×10+10 à 60%</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w1s2e1"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s2e2">
+          <div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Oiseau ou pec fly inversé</div><div class="ex-meta"><span class="reps-text">2×10–12 + 1×10+10 à 70%</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w1s2e2"></div>
+        </div>
+        <div class="ex-row" data-total="4" data-done="0" data-id="w1s2e3">
+          <div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Squat ou presse</div><div class="ex-meta"><span class="reps-text">1×12–15 + 2×6–8 + 1×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w1s2e3"></div>
+        </div>
+        <div class="ex-row" data-total="4" data-done="0" data-id="w1s2e4">
+          <div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Leg extension</div><div class="ex-meta"><span class="reps-text">1×15–20 + 2×8–10 + 1×10+10 à 50%</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w1s2e4"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s2e5">
+          <div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Fentes bulgares</div><div class="ex-meta"><span class="reps-text">3×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w1s2e5"></div>
+        </div>
+        <div class="ex-row optional" data-total="3" data-done="0" data-id="w1s2e6">
+          <div class="ex-top"><div class="ex-num">6</div><div class="ex-name">Crunch à la poulie <span class="opt-tag">optionnel</span></div><div class="ex-meta"><span class="reps-text">2×12–15 + 1×12+12 à 60%</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w1s2e6"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W1 S3 PUSH -->
+    <div class="session-panel" id="w1-s3">
+      <div class="session-head">
+        <div class="s-title bb">Séance 3<br><em>Push</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w1-s3" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w1-s3">0%</div>
+          <button class="reset-btn" onclick="resetSession('w1-s3')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s3e1"><div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Développé couché</div><div class="ex-meta"><span class="reps-badge">6–8 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w1s3e1"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s3e2"><div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Développé incliné</div><div class="ex-meta"><span class="reps-badge">8–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w1s3e2"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s3e3"><div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Écarté ou pec fly</div><div class="ex-meta"><span class="reps-badge">10–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w1s3e3"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s3e4"><div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Élévations latérales</div><div class="ex-meta"><span class="reps-badge">10–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w1s3e4"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s3e5"><div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Extensions triceps</div><div class="ex-meta"><span class="reps-badge">12–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w1s3e5"></div></div>
+      </div>
+    </div>
+
+    <!-- W1 S4 PULL -->
+    <div class="session-panel" id="w1-s4">
+      <div class="session-head">
+        <div class="s-title bb">Séance 4<br><em>Pull</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w1-s4" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w1-s4">0%</div>
+          <button class="reset-btn" onclick="resetSession('w1-s4')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s4e1"><div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Rowing bücheron</div><div class="ex-meta"><span class="reps-badge">8–10 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w1s4e1"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s4e2"><div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Tirage vertical</div><div class="ex-meta"><span class="reps-badge">8–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w1s4e2"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s4e3"><div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Tirage horizontal prise neutre</div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w1s4e3"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s4e4"><div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Tirage focus grand dorsal</div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w1s4e4"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s4e5"><div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Curl marteau</div><div class="ex-meta"><span class="reps-badge">10–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w1s4e5"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s4e6"><div class="ex-top"><div class="ex-num">6</div><div class="ex-name">Facepull</div><div class="ex-meta"><span class="reps-badge">15–20 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w1s4e6"></div></div>
+      </div>
+    </div>
+
+    <!-- W1 S5 LEGS -->
+    <div class="session-panel" id="w1-s5">
+      <div class="session-head">
+        <div class="s-title bb">Séance 5<br><em>Legs</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w1-s5" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w1-s5">0%</div>
+          <button class="reset-btn" onclick="resetSession('w1-s5')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s5e1"><div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Squat ou presse</div><div class="ex-meta"><span class="reps-badge">6–8 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w1s5e1"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s5e2"><div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Soulevé de terre jambes tendues</div><div class="ex-meta"><span class="reps-badge">8–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w1s5e2"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s5e3"><div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Leg extension</div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w1s5e3"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s5e4"><div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Leg curl</div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w1s5e4"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s5e5"><div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Extensions lombaires focus fessiers</div><div class="ex-meta"><span class="reps-badge">12–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w1s5e5"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w1s5e6"><div class="ex-top"><div class="ex-num">6</div><div class="ex-name">Extensions mollets</div><div class="ex-meta"><span class="reps-badge">10–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w1s5e6"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEMAINE 2 -->
+  <div id="week2" style="display:none">
+    <div class="sessions-nav">
+      <button class="stab active" onclick="switchSession('w2',1,this)" id="w2-stab-1">UPPER BODY<div class="dot-done"></div></button>
+      <button class="stab" onclick="switchSession('w2',2,this)" id="w2-stab-2">LOWER BODY<div class="dot-done"></div></button>
+      <button class="stab" onclick="switchSession('w2',3,this)" id="w2-stab-3">PUSH<div class="dot-done"></div></button>
+      <button class="stab" onclick="switchSession('w2',4,this)" id="w2-stab-4">PULL<div class="dot-done"></div></button>
+      <button class="stab" onclick="switchSession('w2',5,this)" id="w2-stab-5">LEGS<div class="dot-done"></div></button>
+    </div>
+
+    <div id="w2-nochoice" class="no-session">— Sélectionne une séance —</div>
+
+    <!-- W2 S1 UPPER BODY -->
+    <div class="session-panel" id="w2-s1">
+      <div class="session-head">
+        <div class="s-title bb">Séance 1<br><em>Upper Body</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w2-s1" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w2-s1">0%</div>
+          <button class="reset-btn" onclick="resetSession('w2-s1')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="4" data-done="0" data-id="w2s1e1">
+          <div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Développé incliné</div><div class="ex-meta"><span class="reps-text">3×8–10 + 1×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w2s1e1"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s1e2">
+          <div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Écartés poulie basse ou pec fly</div><div class="ex-meta"><span class="reps-text">2×10–12 + 1×10+10 à 70%</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w2s1e2"></div>
+        </div>
+        <div class="ex-row" data-total="4" data-done="0" data-id="w2s1e3">
+          <div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Tirage vertical prise neutre</div><div class="ex-meta"><span class="reps-text">1×12 + 3×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w2s1e3"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s1e4">
+          <div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Tirage horizontal</div><div class="ex-meta"><span class="reps-text">1×12 + 2×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w2s1e4"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s1e5">
+          <div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Curl marteau<small>superset — Extensions triceps</small></div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w2s1e5"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W2 S2 LOWER BODY -->
+    <div class="session-panel" id="w2-s2">
+      <div class="session-head">
+        <div class="s-title bb">Séance 2<br><em>Lower Body</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w2-s2" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w2-s2">0%</div>
+          <button class="reset-btn" onclick="resetSession('w2-s2')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s2e1">
+          <div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Développé militaire</div><div class="ex-meta"><span class="reps-text">3×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w2s2e1"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s2e2">
+          <div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Élévations latérales<small>superset — Facepull</small></div><div class="ex-meta"><span class="reps-text">3×8–10</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w2s2e2"></div>
+        </div>
+        <div class="ex-row" data-total="4" data-done="0" data-id="w2s2e3">
+          <div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Squat ou presse</div><div class="ex-meta"><span class="reps-text">1×12–15 + 3×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w2s2e3"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s2e4">
+          <div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Soulevé de terre jambes tendues</div><div class="ex-meta"><span class="reps-text">1×12–15 + 2×8–10</span><span class="rest-badge">3 min</span></div></div>
+          <div class="series-row" id="sr-w2s2e4"></div>
+        </div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s2e5">
+          <div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Leg curl</div><div class="ex-meta"><span class="reps-text">3×8–10</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w2s2e5"></div>
+        </div>
+        <div class="ex-row optional" data-total="3" data-done="0" data-id="w2s2e6">
+          <div class="ex-top"><div class="ex-num">6</div><div class="ex-name">Extension mollet <span class="opt-tag">optionnel</span><small>superset — Gainage 45 sec</small></div><div class="ex-meta"><span class="reps-text">3×8–10 / 45s</span><span class="rest-badge">1m30</span></div></div>
+          <div class="series-row" id="sr-w2s2e6"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W2 S3 PUSH -->
+    <div class="session-panel" id="w2-s3">
+      <div class="session-head">
+        <div class="s-title bb">Séance 3<br><em>Push</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w2-s3" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w2-s3">0%</div>
+          <button class="reset-btn" onclick="resetSession('w2-s3')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s3e1"><div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Développé couché</div><div class="ex-meta"><span class="reps-badge">6–8 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w2s3e1"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s3e2"><div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Développé incliné</div><div class="ex-meta"><span class="reps-badge">8–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w2s3e2"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s3e3"><div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Écarté ou pec fly</div><div class="ex-meta"><span class="reps-badge">10–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w2s3e3"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s3e4"><div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Élévations latérales</div><div class="ex-meta"><span class="reps-badge">10–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w2s3e4"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s3e5"><div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Extensions triceps</div><div class="ex-meta"><span class="reps-badge">12–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w2s3e5"></div></div>
+      </div>
+    </div>
+
+    <!-- W2 S4 PULL -->
+    <div class="session-panel" id="w2-s4">
+      <div class="session-head">
+        <div class="s-title bb">Séance 4<br><em>Pull</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w2-s4" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w2-s4">0%</div>
+          <button class="reset-btn" onclick="resetSession('w2-s4')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s4e1"><div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Rowing bücheron</div><div class="ex-meta"><span class="reps-badge">8–10 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w2s4e1"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s4e2"><div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Tirage vertical</div><div class="ex-meta"><span class="reps-badge">8–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w2s4e2"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s4e3"><div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Tirage horizontal prise neutre</div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w2s4e3"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s4e4"><div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Tirage focus grand dorsal</div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w2s4e4"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s4e5"><div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Curl banc incliné</div><div class="ex-meta"><span class="reps-badge">10–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w2s4e5"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s4e6"><div class="ex-top"><div class="ex-num">6</div><div class="ex-name">Facepull</div><div class="ex-meta"><span class="reps-badge">15–20 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w2s4e6"></div></div>
+      </div>
+    </div>
+
+    <!-- W2 S5 LEGS -->
+    <div class="session-panel" id="w2-s5">
+      <div class="session-head">
+        <div class="s-title bb">Séance 5<br><em>Legs</em></div>
+        <div class="progress-area">
+          <div class="prog-label">Progression</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-w2-s5" style="width:0%"></div></div>
+          <div class="prog-pct bb" id="pp-w2-s5">0%</div>
+          <button class="reset-btn" onclick="resetSession('w2-s5')">↺ Réinitialiser</button>
+        </div>
+      </div>
+      <div class="ex-list">
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s5e1"><div class="ex-top"><div class="ex-num">1</div><div class="ex-name">Squat ou presse</div><div class="ex-meta"><span class="reps-badge">6–8 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w2s5e1"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s5e2"><div class="ex-top"><div class="ex-num">2</div><div class="ex-name">Soulevé de terre jambes tendues</div><div class="ex-meta"><span class="reps-badge">8–12 reps</span><span class="rest-badge">3 min</span></div></div><div class="series-row" id="sr-w2s5e2"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s5e3"><div class="ex-top"><div class="ex-num">3</div><div class="ex-name">Leg extension</div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w2s5e3"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s5e4"><div class="ex-top"><div class="ex-num">4</div><div class="ex-name">Leg curl</div><div class="ex-meta"><span class="reps-badge">10–12 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w2s5e4"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s5e5"><div class="ex-top"><div class="ex-num">5</div><div class="ex-name">Extensions lombaires focus fessiers</div><div class="ex-meta"><span class="reps-badge">12–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w2s5e5"></div></div>
+        <div class="ex-row" data-total="3" data-done="0" data-id="w2s5e6"><div class="ex-top"><div class="ex-num">6</div><div class="ex-name">Extensions mollets</div><div class="ex-meta"><span class="reps-badge">10–15 reps</span><span class="rest-badge">1m30</span></div></div><div class="series-row" id="sr-w2s5e6"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">Coche chaque série en cliquant sur les points — clique sur un onglet actif pour le fermer.</div>
+</div>
+
+<script>
+function buildDots(){
+  document.querySelectorAll('.ex-row').forEach(row=>{
+    const total=parseInt(row.dataset.total);
+    const id=row.dataset.id;
+    const container=document.getElementById('sr-'+id);
+    if(!container)return;
+    container.innerHTML='';
+    for(let i=0;i<total;i++){
+      const btn=document.createElement('button');
+      btn.className='serie-dot';
+      btn.setAttribute('aria-label','Série '+(i+1));
+      btn.dataset.idx=i;
+      btn.onclick=function(){toggleDot(this);};
+      container.appendChild(btn);
+    }
+  });
+}
+function toggleDot(btn){
+  const row=btn.closest('.ex-row');
+  const dots=row.querySelectorAll('.serie-dot');
+  const idx=parseInt(btn.dataset.idx);
+  const isDone=btn.classList.contains('done');
+  if(!isDone){for(let i=0;i<=idx;i++)dots[i].classList.add('done');}
+  else{for(let i=idx;i<dots.length;i++)dots[i].classList.remove('done');}
+  const doneCount=row.querySelectorAll('.serie-dot.done').length;
+  const total=parseInt(row.dataset.total);
+  row.dataset.done=doneCount;
+  row.classList.toggle('all-done',doneCount>=total);
+  updateProgress(row.closest('.session-panel'));
+  updateTabCompletion(row.closest('.session-panel'));
+}
+function updateProgress(panel){
+  if(!panel)return;
+  const id=panel.id;
+  const rows=panel.querySelectorAll('.ex-row');
+  let totalSeries=0,doneSeries=0;
+  rows.forEach(r=>{totalSeries+=parseInt(r.dataset.total);doneSeries+=parseInt(r.dataset.done)||0;});
+  const pct=totalSeries>0?Math.round(doneSeries/totalSeries*100):0;
+  const pf=document.getElementById('pf-'+id);
+  const pp=document.getElementById('pp-'+id);
+  if(pf)pf.style.width=pct+'%';
+  if(pp)pp.textContent=pct+'%';
+}
+function updateTabCompletion(panel){
+  if(!panel)return;
+  const id=panel.id;
+  const parts=id.split('-');
+  const week=parts[0];
+  const sNum=parts[1].replace('s','');
+  const rows=panel.querySelectorAll('.ex-row');
+  let allDone=true;
+  rows.forEach(r=>{if(parseInt(r.dataset.done)<parseInt(r.dataset.total))allDone=false;});
+  const stab=document.getElementById(week+'-stab-'+sNum);
+  if(stab)stab.classList.toggle('completed',allDone);
+}
+function resetSession(panelId){
+  const panel=document.getElementById(panelId);
+  if(!panel)return;
+  panel.querySelectorAll('.ex-row').forEach(r=>{
+    r.dataset.done=0;
+    r.classList.remove('all-done');
+    r.querySelectorAll('.serie-dot').forEach(d=>d.classList.remove('done'));
+  });
+  updateProgress(panel);
+  updateTabCompletion(panel);
+}
+let activeSession={w1:null,w2:null};
+function switchWeek(n){
+  document.getElementById('week1').style.display=n===1?'block':'none';
+  document.getElementById('week2').style.display=n===2?'block':'none';
+  document.querySelectorAll('.wtab').forEach((t,i)=>t.classList.toggle('active',i+1===n));
+}
+function switchSession(week,n,btn){
+  const panelId=week+'-s'+n;
+  const panel=document.getElementById(panelId);
+  const noChoice=document.getElementById(week+'-nochoice');
+  const isOpen=activeSession[week]===n;
+  document.querySelectorAll('#'+week+' .session-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#'+week+' .stab').forEach(t=>t.classList.remove('active'));
+  if(isOpen){
+    activeSession[week]=null;
+    noChoice.style.display='block';
+  } else {
+    activeSession[week]=n;
+    panel.classList.add('active');
+    btn.classList.add('active');
+    noChoice.style.display='none';
+  }
+}
+buildDots();
+</script>
+</body>
+</html>
